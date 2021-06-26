@@ -71,6 +71,7 @@ class Register extends React.Component {
             <Input.Password
               className="input-field"
               prefix={<LockOutlined className="site-form-item-icon" />}
+              placeholder="Password"
               // TODO: CRIO_TASK_MODULE_UNDERSTANDING_BASICS - Add a placeholder text, "Password" to the input bar
               onChange={(e) => {
                 this.setState({
@@ -82,6 +83,7 @@ class Register extends React.Component {
             {/* Antd component which renders a formatted <input type="password"> field */}
             <Input.Password
               className="input-field"
+              prefix={<LockOutlined className="site-form-item-icon" />}
               // TODO: CRIO_TASK_MODULE_UNDERSTANDING_BASICS - Add a lock icon to the input bar (check how the "Password" input bar is rendered)
               placeholder="Confirm Password"
               onChange={(e) => {
@@ -95,6 +97,7 @@ class Register extends React.Component {
             <Button
               loading={this.state.loading}
               type="primary"
+              onClick={this.register}
               // TODO: CRIO_TASK_MODULE_UNDERSTANDING_BASICS - Add an event handler which calls the "register()" function when the button is clicked
             >
               Register
