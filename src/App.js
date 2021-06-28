@@ -4,6 +4,7 @@ import { Route, Switch, useLocation } from "react-router-dom";
 import Home from "./components/Home";
 import Login from "./components/Login";
 import Register from "./components/Register";
+import Search from "./components/Search";
 import ipConfig from "./ipConfig.json";
 
 export const config = {
@@ -41,6 +42,14 @@ export default function App(props) {
 
                   
                     </Switch>
+        <Route path="/products">
+          <Search />
+        </Route>
+
+
+        <Route path="/">
+          <Home />
+        </Route>
 
 
     </div>
