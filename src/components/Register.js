@@ -63,7 +63,38 @@ class Register extends React.Component {
    *      "message": "Username is already taken"
    * }
    */
-  performAPICall = async () => {
+  performAPICall =  () => {
+    this.validateInput();
+    this.setState({loading:true})
+    let  errored = false;
+    fetch(config.endpoint+"/auth/register", {
+    method: "POST",
+    body: JSON.stringify({
+        username: this.state.username,
+        password: this.state.password
+    }),
+    headers: {
+        "Content-type": "application/json; charset=UTF-8"
+    }
+})
+.then(response => response.json())
+.then(data =>{
+  if(this.validateResponse(errored,data)){
+    console.log(data);
+    this.props.history.push('/login')
+    return data;
+  }
+  
+})
+.catch(err => {
+  console.log(err);
+  errored = true;
+  if(this.validateResponse(errored,err)){
+    console.log(err);
+    return err;
+  }
+})
+
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Implement user input validation logic
@@ -83,6 +114,38 @@ class Register extends React.Component {
    * -    Check that confirmPassword field has the same value as password field
    */
   validateInput = () => {
+    if(this.state.username===''){
+      message.error("username should not be empty");
+      return false;
+    }
+    else if(this.state.username.length<6){
+      message.error("username length should  be greater than 6 ");
+      return false;
+    }
+    else if(this.state.username.length>32){
+      message.error("username length should  be less than 32 ");
+      return false;
+    }
+    else if(this.state.password===''){
+      message.error("password should not be empty");
+      return false;
+    }
+    else if(this.state.password.length<6){
+      message.error("password length should  be greater than 6 ");
+      return false;
+    }
+    else if(this.state.password.length>32){
+      message.error("password length should  be less than 32 ");
+      return false;
+    }
+    else if(this.state.password !== this.state.confirmPassword){
+      message.error("passwords must match ");
+      return false;
+    }
+    else{
+      return true;
+    }
+    
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Check API response
@@ -120,6 +183,20 @@ class Register extends React.Component {
    *
    */
   validateResponse = (errored, response) => {
+    if(errored){
+      message.error("An error occured");
+      return false;
+    }else if(!response.success){
+      message.error(response.message);
+      return false;
+    }else{
+      message.success("Registered Successfully");
+      return true;
+    }
+
+    
+  
+
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Implement the register function
@@ -134,7 +211,11 @@ class Register extends React.Component {
    *      -   Redirect the user to the "/login" page
    */
   register = async () => {
-     const response = await this.performAPICall();
+    if(this.validateInput()){
+      
+      const response = await this.performAPICall();
+      this.setState({loading:false})
+     }
   };
 
   /**

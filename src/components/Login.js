@@ -61,6 +61,31 @@ class Login extends React.Component {
    * }
    */
   performAPICall = async () => {
+    this.setState({
+      loading:true,
+    })
+    const url=`${config.endpoint}/auth/login`
+    try{
+      const response=await fetch(url,{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body:
+        JSON.stringify({
+        "username":this.state.username,
+        "password": this.state.password
+        })
+      })
+      const jsonResponse=await response.json()
+      if(this.validateResponse(false,jsonResponse)){
+        return jsonResponse
+      }
+    }
+    catch(err){
+      this.validateResponse(true,undefined)
+      return undefined
+    }
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Validate the input
@@ -75,6 +100,7 @@ class Login extends React.Component {
    * -    Check that password field is not an empty value
    */
   validateInput = () => {
+    return this.state.username.length!==0&&this.state.password.length!==0
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Check the API response
@@ -95,6 +121,18 @@ class Login extends React.Component {
    * When there is no error and API call is successful, return true.
    */
   validateResponse = (errored, response) => {
+    if(errored){
+      message.error('some error occured.')
+      return false
+    }
+    if(!response.success){
+      message.error(response.message)
+      return false
+    }
+    else{
+      return true
+    }
+
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Persist user's login information
@@ -114,6 +152,9 @@ class Login extends React.Component {
    * -    `balance` field in localStorage can be used to store the balance amount in the user's wallet
    */
   persistLogin = (token, username, balance) => {
+    localStorage.setItem('token',token)
+    localStorage.setItem('username',username)
+    localStorage.setItem('balance',balance)
   };
 
   // TODO: CRIO_TASK_MODULE_LOGIN - Implement the login function
@@ -130,7 +171,28 @@ class Login extends React.Component {
    */
 
   login = async () => {
-     this.validateInput();
+   
+     const res=this.validateInput();
+     if(res){
+       const response=await this.performAPICall()
+      if(response){
+       this.persistLogin(response.token,response.username,response.balance)
+       this.setState({
+         username:'',
+         password:'',
+         loading:false,
+       })
+       message.info('login success')
+       this.props.history.push('/products')
+      }
+      else{
+        this.setState({
+          username:'',
+          password:'',
+          loading:false,
+        })
+      }
+     }
   };
 
   /**
