@@ -34,6 +34,10 @@ export default function App(props) {
                       <Login/>
                     </Route>
 
+                    <Route exact path="/products">
+          <Search />
+        </Route>
+
                     <Route  path="/">
                 <Home />
               </Route>
@@ -42,14 +46,10 @@ export default function App(props) {
 
                   
                     </Switch>
-        <Route path="/products">
-          <Search />
-        </Route>
+       
 
 
-        <Route path="/">
-          <Home />
-        </Route>
+        
 
 
     </div>

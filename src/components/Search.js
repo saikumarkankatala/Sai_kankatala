@@ -152,6 +152,17 @@ class Search extends React.Component {
    *      -   Update `filteredProducts` state variable with a clone of `products`
    */
   getProducts = async () => {
+    const  result = await this.performAPICall();
+    if(result){
+      this.products=result;
+      //this.state.filteredProducts=this.products;
+      this.setState(
+        {
+          filteredProducts : [...this.products]
+        }
+      )
+    }
+
   };
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement a lifecycle method which uses getProducts() to fetch data and update state if user's logged in, after the component is loaded
@@ -160,6 +171,12 @@ class Search extends React.Component {
    * This is the function that is called when the user lands on the Search/Products page
    * This is a good place to check and set a state flag for whether the user is logged in so we can use it for conditional rendering later on in render()
    */
+  componentDidMount(){
+    this.getProducts();
+    if(localStorage.getItem('token')){
+      this.state.loggedIn = true;
+    }
+  }
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement the search() method
   /**
@@ -174,6 +191,14 @@ class Search extends React.Component {
    * -    The search filtering should not take in to account the letter case of the search text or name/category fields
    */
   search = (text) => {
+    let prods=this.products
+    let arr=prods.filter((item)=>{
+      return item.name.toUpperCase().includes(text.toUpperCase())||item.category.toUpperCase().includes(text.toUpperCase())
+    })
+    
+    this.setState({
+      filteredProducts:[...arr]
+    })
   };
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement the debounceSearch() method
@@ -191,6 +216,14 @@ class Search extends React.Component {
    * -    Call setTimeout to start a new timer that calls below defined search() method after 300ms and store the return value in the debounceTimeout class property: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout
    */
   debounceSearch = (event) => {
+    let searchText=event.target.value
+    if(this.debounceTimeout){
+    clearTimeout(this.debounceTimeout)
+    }
+    
+    this.debounceTimeout=setTimeout(()=>this.search(searchText),300)
+    
+  
   };
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement getProductElement(). If not logged in, clicking on "Add to Cart" should redirect user to the login page
@@ -210,6 +243,9 @@ class Search extends React.Component {
             if (this.state.loggedIn) {
               message.info("Cart functionality not implemented yet");
             }
+            else{
+              return this.props.history.push('/login');
+            }
           }}
         />
       </Col>
@@ -222,11 +258,15 @@ class Search extends React.Component {
    * We also iterate over the filteredProducts list and display each product as a component
    */
   render() {
+    //console.log(this.state.filteredProducts);
     return (
       <>
         {/* Display Header with Search bar */}
         <Header history={this.props.history}>
           {/* TODO: CRIO_TASK_MODULE_PRODUCTS - Display search bar in the header for Products page */}
+          <Input.Search id='products-search' placeholder='search' onChange={this.debounceSearch}  onSearch={(e)=>this.search(e.target.value)}></Input.Search>
+
+          
 
         </Header>
 

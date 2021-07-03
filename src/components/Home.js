@@ -5,7 +5,6 @@ import Home from "./Home";
 import "./Home.css";
 import Register from "./Register";
 import Login from "./Login";
-import { Link } from "react-router-dom";
 import "./Home.css";
 
 export default function App() {
