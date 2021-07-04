@@ -2,6 +2,7 @@ import { Input, message } from "antd";
 import React from "react";
 import { withRouter } from "react-router-dom";
 import { config } from "../App";
+import Cart from "./Cart";
 import Header from "./Header";
 import Product from "./Product";
 import { Row, Col } from "antd";
@@ -22,6 +23,8 @@ import "./Search.css";
  * @class Search component handles the Products list page UI and functionality
  * 
  * Contains the following fields
+ * @property {React.RefObject} cartRef 
+ *    Reference to Cart component (to trigger certain methods within the cart component)
  * @property {number} debounceTimeout 
  *    Holds the return value from setTimeout() for the search bar debouncer
  * @property {Product[]} products 
