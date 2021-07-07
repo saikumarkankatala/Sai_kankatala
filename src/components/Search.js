@@ -39,6 +39,7 @@ import "./Search.css";
 class Search extends React.Component {
   constructor() {
     super();
+    this.myRef = React.createRef();
     this.debounceTimeout = 0;
     this.products = [];
     this.state = {
@@ -155,17 +156,13 @@ class Search extends React.Component {
    *      -   Update `filteredProducts` state variable with a clone of `products`
    */
   getProducts = async () => {
-    const  result = await this.performAPICall();
-    if(result){
-      this.products=result;
-      //this.state.filteredProducts=this.products;
-      this.setState(
-        {
-          filteredProducts : [...this.products]
-        }
-      )
+    const response=await this.performAPICall()
+    if(response){
+      this.products=response
+      this.setState({
+        filteredProducts:[...this.products]
+      })
     }
-
   };
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement a lifecycle method which uses getProducts() to fetch data and update state if user's logged in, after the component is loaded
@@ -175,9 +172,12 @@ class Search extends React.Component {
    * This is a good place to check and set a state flag for whether the user is logged in so we can use it for conditional rendering later on in render()
    */
   componentDidMount(){
-    this.getProducts();
+    this.getProducts()
     if(localStorage.getItem('token')){
-      this.state.loggedIn = true;
+      this.setState({
+        loggedIn:true,
+      })
+      // this.myRef.current.getCart()
     }
   }
 
@@ -194,6 +194,8 @@ class Search extends React.Component {
    * -    The search filtering should not take in to account the letter case of the search text or name/category fields
    */
   search = (text) => {
+    // const text=e.target.value
+    // console.log('hi here',text.toUpperCase())
     let prods=this.products
     let arr=prods.filter((item)=>{
       return item.name.toUpperCase().includes(text.toUpperCase())||item.category.toUpperCase().includes(text.toUpperCase())
@@ -203,6 +205,8 @@ class Search extends React.Component {
       filteredProducts:[...arr]
     })
   };
+
+  
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement the debounceSearch() method
   /**
@@ -218,15 +222,15 @@ class Search extends React.Component {
    * -    If the debounceTimeout class property is already set, use clearTimeout to remove the timer from memory: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/clearTimeout
    * -    Call setTimeout to start a new timer that calls below defined search() method after 300ms and store the return value in the debounceTimeout class property: https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout
    */
-  debounceSearch = (event) => {
-    let searchText=event.target.value
+  debounceSearch = (e) => {
+    // console.log(e,this)
+    let searchText=e.target.value
     if(this.debounceTimeout){
     clearTimeout(this.debounceTimeout)
     }
     
     this.debounceTimeout=setTimeout(()=>this.search(searchText),300)
     
-  
   };
 
   // TODO: CRIO_TASK_MODULE_PRODUCTS - Implement getProductElement(). If not logged in, clicking on "Add to Cart" should redirect user to the login page
@@ -239,15 +243,18 @@ class Search extends React.Component {
    */
   getProductElement = (product) => {
     return (
-      <Col xs={24} sm={12} xl={6} key={product._id}>
+      <Col xs={24} sm={12} xl={6}  key={product._id}>
         <Product
           product={product}
           addToCart={() => {
             if (this.state.loggedIn) {
-              message.info("Cart functionality not implemented yet");
+              // message.info("Cart functionality not implemented yet");
+              this.myRef.current.pushToCart(product._id,1,true)
             }
             else{
-              return this.props.history.push('/login');
+              return this.props.history.push('/login')
+              
+              // this.props.history.push('/login')
             }
           }}
         />
@@ -259,18 +266,16 @@ class Search extends React.Component {
    * JSX and HTML goes here
    * We require a text field as the search (optionally along with a button for submitting the search query)
    * We also iterate over the filteredProducts list and display each product as a component
+   * Display Cart sidebar component if user is logged in
    */
   render() {
-    //console.log(this.state.filteredProducts);
     return (
       <>
         {/* Display Header with Search bar */}
-        <Header history={this.props.history}>
+        <Header history={this.props.history}  >
           {/* TODO: CRIO_TASK_MODULE_PRODUCTS - Display search bar in the header for Products page */}
-          <Input.Search id='products-search' placeholder='search' onChange={this.debounceSearch}  onSearch={(e)=>this.search(e.target.value)}></Input.Search>
-
           
-
+           <Input.Search id='products-search' placeholder='search' onChange={this.debounceSearch}  onSearch={(e)=>this.search(e.target.value)}></Input.Search>
         </Header>
 
         {/* Use Antd Row/Col components to display products and cart as columns in the same row*/}
@@ -278,6 +283,7 @@ class Search extends React.Component {
           {/* Display products */}
           <Col
             xs={{ span: 24 }}
+            md={{span:this.state.loggedIn?16:24}}
           >
             <div className="search-container ">
               {/* Display each product item wrapped in a Col component */}
@@ -296,6 +302,24 @@ class Search extends React.Component {
           </Col>
 
           {/* Display cart */}
+          {this.state.loggedIn && this.products.length && (
+            <Col
+              xs={{ span: 24 }}
+              md={{span:8}}
+              className="search-cart"
+            >
+              <div>
+                {/* TODO: CRIO_TASK_MODULE_CART - Add a Cart to the products page */}
+                <Cart
+                products={this.products}
+                history={this.props.history}
+                token={localStorage.getItem('token')}
+                checkout={false}
+                ref={this.myRef}
+                />
+              </div>
+            </Col>
+          )}
         </Row>
 
         {/* Display the footer */}

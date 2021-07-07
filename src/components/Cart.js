@@ -46,7 +46,7 @@ export default class Cart extends React.Component {
       loading: false,
     };
   }
-
+ 
   /**
    * Check the response of the API call to be valid and handle any failures along the way
    *
@@ -125,9 +125,14 @@ export default class Cart extends React.Component {
 
     try {
       // TODO: CRIO_TASK_MODULE_CART - Pass the OAuth token (check supported props in Cart class documentation) in the fetch API call as an Authorization header
+      let bearer='Bearer '+this.props.token
       response = await (
         await fetch(`${config.endpoint}/cart`, {
           method: "GET",
+          headers:{
+            'Authorization': bearer,
+            'Content-Type': 'application/json'
+          }
         })
       ).json();
     } catch (e) {
@@ -197,21 +202,34 @@ export default class Cart extends React.Component {
     });
 
     try {
+      let bearer='Bearer '+this.props.token
       // TODO: CRIO_TASK_MODULE_CART - Make an authenticated POST request to "/cart". JSON with properties - productId, qty are to be sent in the request body
       response = await (
         await fetch(`${config.endpoint}/cart`, {
+          method:'POST',
+          headers:{
+            'Authorization':bearer,
+            'Content-Type': 'application/json'
+          },
+          body:JSON.stringify({
+            productId:productId,
+            qty:qty
+          })
         })
       ).json();
     } catch (e) {
+      console.log('any error')
       errored = true;
     }
 
+   
+
+    if (this.validateResponse(errored, response)) {
+      await this.refreshCart()
+    }
     this.setState({
       loading: false,
     });
-
-    if (this.validateResponse(errored, response)) {
-    }
   };
 
   /**
@@ -219,6 +237,9 @@ export default class Cart extends React.Component {
    * -    Call the previously defined getCart() function asynchronously and capture the returned value in a variable
    * -    If the returned value exists,
    *      -   Update items state variable with the response (optionally add the corresponding product object of that item as a sub-field)
+   * -    If the cart is being displayed from the checkout page, or the cart is empty,
+   *      -   Display an error message
+   *      -   Redirect the user to the products listing page
    */
   refreshCart = async () => {
     const cart = await this.getCart();
@@ -234,6 +255,7 @@ export default class Cart extends React.Component {
       });
     }
 
+    // TODO: CRIO_TASK_MODULE_CHECKOUT - If the user visits "/checkout" directly and cart is empty, display an error message and redirect to the "/products" page
   };
 
   /**
@@ -246,7 +268,7 @@ export default class Cart extends React.Component {
   calculateTotal = () => {
     return this.state.items.length
       ? this.state.items.reduce(
-          (total, item) => total + item.product.cost * item.qty,
+          (total, item) => total + (parseInt(item.product.cost) * parseInt(item.qty)),
           0
         )
       : 0;
@@ -258,6 +280,12 @@ export default class Cart extends React.Component {
    * This is the function that is called when the page loads the cart component
    * We can call refreshCart() here to get the cart items
    */
+  componentDidMount(){
+    this.refreshCart()
+    // if(this.state.items.length===0){
+    //   this.props.history.push('/products')
+    // }
+  }
 
   // TODO: CRIO_TASK_MODULE_CART - Implement getQuantityElement(). If props.checkout is not set, display a Input field.
   /**
@@ -267,8 +295,61 @@ export default class Cart extends React.Component {
    * @returns {JSX}
    *    HTML and JSX to be rendered
    */
+  // getQuantityElement = (item) => {
+  //   if(window.location.pathname==="/products"){
+  //   if(this.props.checkout){
+  //    return  <div className="cart-item-qty-fixed"></div>
+  //   }
+  //   else{
+  //     // let arr=[0,1,2,3,4,5,6,7,8,9,10]
+  //    return  <div>
+  //      <InputNumber min={1} max={10} defaultValue={item.qty} onChange={(value) => {
+  //           this.pushToCart(item.productId, value, false)          
+  //         }} />
+  //     </div>
+  //   }
+  // }
+  // else if(window.location.pathname==="/checkout"){
+  //   return(
+  //     <>
+  //     Qty:{item.qty}
+  //     </>
+  //   )
+  // }
+  // };
+
+  /*
+  try like this:*/
   getQuantityElement = (item) => {
+    if(window.location.pathname === "/products") {
+      if(this.props.checkout) {
+        return (
+          <div className="cart-item-qty-fixed"></div>
+        );
+      }
+      else {
+        return (
+          <InputNumber min={1} max={10} defaultValue={item.qty} onChange={(value) => {
+            this.pushToCart(item.productId, value, false)          
+          }} />
+        );
+      }
+    }
+    else if(window.location.pathname === "/checkout") {
+      return (
+        <>
+          Qty: {item.qty}
+        </>
+      );
+    }
   };
+  
+  
+
+  handleCheckout=()=>{
+    this.state.items.length>0?this.props.history.push('/checkout'):
+    message.info('you should add some items first')
+  }
 
   /**
    * JSX and HTML goes here
@@ -317,7 +398,7 @@ export default class Cart extends React.Component {
                   {/* Display field to update quantity or a static quantity text */}
                   <div className="cart-item-qty">
                     {/* TODO: CRIO_TASK_MODULE_CART - Implement getQuantityElement() method */}
-                    {/* {this.getQuantityElement(item)} */}
+                    {this.getQuantityElement(item)}
                   </div>
                 </div>
               </Card>
@@ -332,7 +413,7 @@ export default class Cart extends React.Component {
                 <div>Products</div>
                 <div>
                   {this.state.items.reduce(function (sum, item) {
-                    return sum + item.qty;
+                    return parseInt(sum) + parseInt(item.qty);
                   }, 0)}
                 </div>
               </div>
@@ -368,6 +449,7 @@ export default class Cart extends React.Component {
 
         {/* Display a "Checkout" button */}
         {/* TODO: CRIO_TASK_MODULE_CART - If props.checkout is not set, display a checkout button*/}
+        {!this.props.checkout&&<Button className='check-out-btn' onClick={this.handleCheckout}><ShoppingCartOutlined />checkout</Button>}
 
         {/* Display a loading icon if the "loading" state variable is true */}
         {this.state.loading && (
