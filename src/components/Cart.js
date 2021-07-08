@@ -47,6 +47,7 @@ export default class Cart extends React.Component {
     };
   }
  
+
   /**
    * Check the response of the API call to be valid and handle any failures along the way
    *
