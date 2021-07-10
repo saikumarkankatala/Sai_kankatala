@@ -40,21 +40,7 @@ export default function App(props) {
           <Search />
         </Route>
 
-                    <Route  path="/">
-                <Home />
-              </Route>
-
-
-
-                  
-                    </Switch>
        
-
-
-        
-        <Route path="/products">
-          <Search />
-        </Route>
         <Route path="/checkout">
           <Checkout />
         </Route>
@@ -67,6 +53,12 @@ export default function App(props) {
         <Route path="/">
           <Home />
         </Route>
+                   
+
+
+                  
+                    </Switch>
+
 
 
     </div>

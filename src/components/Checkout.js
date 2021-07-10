@@ -319,7 +319,7 @@ class Checkout extends React.Component {
           newAddress: "",
         });
 
-        await this.getAddresses();
+        console.log(await this.getAddresses());
       }
     }
   };
@@ -360,6 +360,36 @@ class Checkout extends React.Component {
    * }
    */
   deleteAddress = async (addressId) => {
+    this.setState({
+      loading:true
+    })
+    let response={}
+    let errored=false
+    try{
+      const res=await fetch(`${config.endpoint}/user/addresses/${addressId}`,{
+        method:'DELETE',
+        headers: {
+          Authorization:`Bearer ${localStorage.getItem('token')}`,
+          'Content-type': 'application/json'
+      }
+      })
+      response=await res.json()
+    }
+    catch(e){
+      errored=true
+    }
+
+    this.setState({
+      loading:false
+    })
+
+    if (this.validateResponse(errored, response, "address")) {
+      message.info('Address deleted succesfully')
+      await this.getAddresses()
+    }
+
+
+
   };
 
   /**
@@ -426,6 +456,9 @@ class Checkout extends React.Component {
         // 1. Display a order successful message
         // 2. Update user's balance in localStorage
         // 3. Redirect to "/thanks" page
+        message.info('order placed successfully')
+        localStorage.setItem('balance',localStorage.getItem('balance')-this.cartRef.current.calculateTotal())
+        this.props.history.push('/thanks')
     }
   };
 
@@ -437,6 +470,16 @@ class Checkout extends React.Component {
    * -    Else call the checkout() method to proceed with placing and order
    */
   order = async () => {
+    let total = (await this.cartRef.current.calculateTotal());
+    let len= this.state.addresses;
+    if(total> this.balance){
+      message.error('Insufficient Balance')
+    }
+   else if(!len){
+        message.error('add address');
+   }else{
+     this.checkout();
+   }
   };
 
   // TODO: CRIO_TASK_MODULE_CHECKOUT - Implement the componentDidMount() lifecycle method
@@ -448,6 +491,23 @@ class Checkout extends React.Component {
    * Else, show an error message indicating that the user must be logged in first and redirect the user to the home page
    */
   async componentDidMount() {
+    if(localStorage.getItem('token')){
+      await this.getAddresses();
+      await this.getProducts();
+      const cart =await this.cartRef.current.getCart();
+      if(cart.length!==0){
+        this.setState({
+          balance : localStorage.getItem('balance')
+        })
+
+      }else{
+        this.props.history.push('/products');
+      }
+
+    }else{
+      message.info('login in first');
+      this.props.history.push('/home');
+    }
   }
 
   /**
@@ -519,6 +579,7 @@ class Checkout extends React.Component {
                                   {/* Display button to delete address from user's list */}
                                   <Button
                                     type="primary"
+                                    onClick={this.deleteAddress}
                                   >
                                     Delete
                                   </Button>
