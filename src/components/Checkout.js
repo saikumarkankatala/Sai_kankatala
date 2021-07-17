@@ -320,6 +320,7 @@ class Checkout extends React.Component {
         });
 
         console.log(await this.getAddresses());
+        await this.getAddresses();
       }
     }
   };
