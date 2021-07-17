@@ -366,6 +366,7 @@ class Checkout extends React.Component {
     let response={}
     let errored=false
     try{
+      console.log(addressId);
       const res=await fetch(`${config.endpoint}/user/addresses/${addressId}`,{
         method:'DELETE',
         headers: {
@@ -537,7 +538,7 @@ class Checkout extends React.Component {
           <Row>
             {/* TODO: CRIO_TASK_MODULE_CHECKOUT - Cart should be shown on top of  Shipping and Pricing blocks in "xs" devices */}
             {/* Display checkout instructions */}
-            <Col xs={{ span: 24 }} md={{ span: 18 }}>
+            <Col  xs={{span:24,order:2}}   md={{order:1, span: 18 }}>
               <div className="checkout-shipping">
                 <h1 style={{ marginBottom: "-10px" }}>Shipping</h1>
 
@@ -579,7 +580,7 @@ class Checkout extends React.Component {
                                   {/* Display button to delete address from user's list */}
                                   <Button
                                     type="primary"
-                                    onClick={this.deleteAddress}
+                                    onClick={()=>this.deleteAddress(address._id)}
                                   >
                                     Delete
                                   </Button>
@@ -656,7 +657,7 @@ class Checkout extends React.Component {
 
             {/* TODO: CRIO_TASK_MODULE_CHECKOUT - Cart should be shown on top of  Shipping and Pricing blocks in "xs" and "sm" devices */}
             {/* Display the cart */}
-            <Col xs={{ span: 24 }} md={6} className="checkout-cart">
+            <Col xs={{ span: 24,order:1 }}  md={{order:2,span:6}}  className="checkout-cart">
               <div>
                 {this.state.products.length && (
                   <Cart
